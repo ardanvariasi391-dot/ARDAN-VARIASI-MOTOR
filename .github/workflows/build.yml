@@ -26,16 +26,27 @@ jobs:
           echo "ZIP ditemukan: $ZIP"
           mkdir -p project
           unzip -o "$ZIP" -d project
-          cp -r project/. .
+
+      - name: Cari folder project Gradle
+        run: |
+          echo "Mencari settings.gradle..."
+          find project -name "settings.gradle" -o -name "settings.gradle.kts"
+
+      - name: Tentukan folder project
+        run: |
+          ROOT=$(dirname "$(find project -name "settings.gradle" -o -name "settings.gradle.kts" | head -n 1)")
+          echo "GRADLE_ROOT=$ROOT" >> $GITHUB_ENV
+          echo "Project Gradle: $ROOT"
 
       - name: Build APK
         run: |
+          cd "$GRADLE_ROOT"
           gradle assembleDebug --no-daemon
 
       - name: Siapkan nama APK
         run: |
           mkdir -p release
-          cp app/build/outputs/apk/debug/app-debug.apk \
+          cp "$GRADLE_ROOT/app/build/outputs/apk/debug/app-debug.apk" \
              release/ARDAN-VARIASI-MOTOR.apk
 
       - name: Simpan APK
